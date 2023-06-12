@@ -2,3 +2,10 @@
 .idea/
 __pycache__/
 *.pyc
+.vscode
+venv
+test_directory
+.mypy_cache
+sol.py
+.py*
+*pkl
