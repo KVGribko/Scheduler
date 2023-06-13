@@ -47,8 +47,3 @@ if __name__ == "__main__":
     sc.add_job(job3)
 
     gen = sc.run()
-    while True:
-        try:
-            next(gen)
-        except StopIteration:
-            break

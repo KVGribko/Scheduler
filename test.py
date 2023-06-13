@@ -162,12 +162,7 @@ class SchedulerTestCase(unittest.TestCase):
         """Тестирование выполнения одной задачи."""
         job = Job(task=normal_task)
         self.scheduler.add_job(job)
-        gen = self.scheduler.run()
-        for _ in range(100):
-            try:
-                next(gen)
-            except StopIteration:
-                break
+        self.scheduler.run()
         self.assertIn(job, self.scheduler.completed_jobs)
         self.assertEqual(job.status, JobStatus.COMPLETED)
 
@@ -177,13 +172,7 @@ class SchedulerTestCase(unittest.TestCase):
         for job in jobs:
             self.scheduler.add_job(job)
 
-        gen = self.scheduler.run()
-        for _ in range(100):
-            try:
-                next(gen)
-            except StopIteration:
-                break
-
+        self.scheduler.run()
         for job in jobs:
             self.assertIn(job, self.scheduler.completed_jobs)
             self.assertEqual(job.status, JobStatus.COMPLETED)

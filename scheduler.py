@@ -1,15 +1,16 @@
+import pickle
+from collections import deque
 from typing import Generator
 
 from job import Job, JobStatus
 from log import logger
-import pickle
 
 
 class Scheduler:
     def __init__(self, max_jobs: int = 10):
         self.max_jobs: int = max_jobs
-        self.running_jobs: list[Job] = []
-        self.pending_jobs: list[Job] = []
+        self.running_jobs = deque()
+        self.pending_jobs = deque()
         self.completed_jobs: list[Job] = []
         self.failed_jobs: list[Job] = []
 
@@ -17,17 +18,23 @@ class Scheduler:
         self.pending_jobs.append(job)
 
     def run(self) -> Generator:
+        gen = self.exec()
+        while True:
+            try:
+                next(gen)
+            except StopIteration:
+                break
+
+    def exec(self) -> Generator:
         while self.running_jobs or self.pending_jobs:
-            print(self.running_jobs)
-            print(self.pending_jobs)
             self._exec_running_jobs()
             self._run_pending_jobs()
             yield
 
     def _exec_running_jobs(self) -> None:
-        waiting_jobs: list[Job] = []
+        waiting_jobs: list[tuple[Job, Generator]] = []
         while self.running_jobs:
-            job, job_gen = self.running_jobs.pop(0)
+            job, job_gen = self.running_jobs.popleft()
             try:
                 next(job_gen)
             except StopIteration:
@@ -51,7 +58,7 @@ class Scheduler:
 
     def _run_pending_jobs(self) -> None:
         while self.pending_jobs and len(self.running_jobs) <= self.max_jobs:
-            job = self.pending_jobs.pop(0)
+            job = self.pending_jobs.popleft()
             job_gen = job.run()
             self.running_jobs.append((job, job_gen))
             logger.info(f"Задача {job.task.__name__} запущена.")
